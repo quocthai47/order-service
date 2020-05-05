@@ -1,7 +1,12 @@
 package metanet.poc.orderservice.service.impl;
 
 
+import io.seata.spring.annotation.GlobalTransactional;
+import metanet.poc.orderservice.client.InventoryFeignClient;
+import metanet.poc.orderservice.client.PaymentFeignClient;
+import metanet.poc.orderservice.dto.AccountDto;
 import metanet.poc.orderservice.dto.OrderDto;
+import metanet.poc.orderservice.dto.PaymentDto;
 import metanet.poc.orderservice.entity.Order;
 import metanet.poc.orderservice.repository.OrderRepository;
 import metanet.poc.orderservice.service.OrderService;
@@ -17,29 +22,41 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private InventoryFeignClient inventoryFeignClient;
 
+    @Autowired
+    private PaymentFeignClient paymentFeignClient;
+
+
+    @Override
+    @GlobalTransactional
     public String createOrder(OrderDto dto) {
         Order order = new Order();
 
-        order.setAmount(dto.getAmount());
         order.setOrderUuid(dto.getOrderUuid());
-        order.setShippingUuid(dto.getShippingUuid());
+        PaymentDto paymentInfo = dto.getPaymentInfo();
 
-        orderRepository.saveAndFlush(order);
+        orderRepository.save(order);
+        inventoryFeignClient.reduceStock(dto.getSelectedProduct());
+        paymentFeignClient.reduceBalance(new AccountDto(paymentInfo.getAccountId(), paymentInfo.getName(), paymentInfo.getTotalAmount()));
+
         return order.getOrderUuid();
     }
 
-    public List<OrderDto> findAllOrders() {
-        List<Order> orders = orderRepository.findAll();
 
+    public List<OrderDto> findAllOrders() {
+
+
+        List<Order> orders = orderRepository.findAll();
         List<OrderDto> orderDto = orders.stream().map(o -> {
-                                                    OrderDto dto = new OrderDto();
-                                                    dto.setOrderUuid(o.getOrderUuid());
-                                                    dto.setAmount(o.getAmount());
-                                                    dto.setShippingUuid(o.getShippingUuid());
-                                                    return dto;
-                                                }).collect(Collectors.toList());
+            OrderDto dto = new OrderDto();
+            dto.setOrderUuid(o.getOrderUuid());
+            return dto;
+        }).collect(Collectors.toList());
 
         return orderDto;
     }
+
+
 }

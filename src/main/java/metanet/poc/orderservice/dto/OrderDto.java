@@ -2,16 +2,17 @@ package metanet.poc.orderservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.math.BigDecimal;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderDto {
 
     private String orderUuid;
-    private String shippingUuid;
-    private BigDecimal amount;
 
-    public OrderDto() {}
+    private ProductDto selectedProduct;
+
+    private PaymentDto paymentInfo;
+
+    public OrderDto() {
+    }
 
 
     public String getOrderUuid() {
@@ -22,19 +23,19 @@ public class OrderDto {
         this.orderUuid = orderUuid;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public ProductDto getSelectedProduct() {
+        return selectedProduct;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setSelectedProduct(ProductDto selectedProduct) {
+        this.selectedProduct = selectedProduct;
     }
 
-    public String getShippingUuid() {
-        return shippingUuid;
+    public PaymentDto getPaymentInfo() {
+        return paymentInfo;
     }
 
-    public void setShippingUuid(String shippingUuid) {
-        this.shippingUuid = shippingUuid;
+    public void setPaymentInfo(PaymentDto paymentInfo) {
+        this.paymentInfo = paymentInfo;
     }
 }
